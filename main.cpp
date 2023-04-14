@@ -85,15 +85,17 @@ struct IterationControl {
         start_time = toki.gettime();
         average_time = 0;
         STATE best_state = initial_state;
+        double time_stamp = start_time;
         cerr << "[INFO] - IterationControl::climb - Starts climbing..." << endl;
-        while(toki.gettime() - start_time + average_time < time_limit) {
+        while(time_stamp - start_time + average_time < time_limit) {
             STATE current_state = STATE::generateState(best_state);
             if(current_state.score > best_state.score) {
                 swap(best_state, current_state);
                 swap_counter++;
             }
             iteration_counter++;
-            average_time = (toki.gettime() - start_time) / iteration_counter;
+            time_stamp = toki.gettime();
+            average_time = (time_stamp - start_time) / iteration_counter;
         }
         cerr << "[INFO] - IterationControl::climb - Iterated " << iteration_counter << " times and swapped " << swap_counter << " times.\n";
         return best_state;
