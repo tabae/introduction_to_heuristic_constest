@@ -102,7 +102,7 @@ struct IterationControl {
 
 struct State {
     Output output;
-    long long score;   
+    long long score;
     State() : score(-(1LL<<60)) {}
     static State initState() {
         State res;
@@ -113,9 +113,17 @@ struct State {
         return res;
     }
     static State generateState(const State& input_state) {
+        static int call_count = 0;
+        call_count++;
         State res = input_state;
-        int i = ryuka.rand(input.D);
-        res.output.t[i] = ryuka.rand(n_kinds);
+        if(call_count % 2) {
+            int i = ryuka.rand(input.D);
+            res.output.t[i] = ryuka.rand(n_kinds);
+        } else {
+            int i = ryuka.rand(input.D);
+            int j = ryuka.rand(input.D);
+            swap(res.output.t[i], res.output.t[j]);
+        }
         res.score = Utils::calcScore(res.output);
         return res;
     }
