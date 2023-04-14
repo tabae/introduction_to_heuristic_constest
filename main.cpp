@@ -10,6 +10,7 @@ struct RandGenerator {
     random_device seed_gen;
     mt19937 engine;
     mt19937_64 engine64;
+    static const int pshift = 1000000000;
     RandGenerator() : engine(seed_gen()), engine64(seed_gen()) {}
     int rand(int mod) {
         return engine() % mod;
@@ -17,6 +18,12 @@ struct RandGenerator {
     long long randll(long long mod) {
         return engine64() % mod;
     } 
+    bool pjudge(double p) {
+        int p_int;
+        if(p > 1) p_int = pshift;
+        else p_int = p * pshift;
+        return rand(pshift) < p_int;
+    }
 } ryuka;
 
 struct Timer {
@@ -86,7 +93,7 @@ struct IterationControl {
         average_time = 0;
         STATE best_state = initial_state;
         double time_stamp = start_time;
-        cerr << "[INFO] - IterationControl::climb - Starts climbing..." << endl;
+        cerr << "[INFO] - IterationControl::climb - Starts climbing...\n";
         while(time_stamp - start_time + average_time < time_limit) {
             STATE current_state = STATE::generateState(best_state);
             if(current_state.score > best_state.score) {
@@ -98,6 +105,28 @@ struct IterationControl {
             average_time = (time_stamp - start_time) / iteration_counter;
         }
         cerr << "[INFO] - IterationControl::climb - Iterated " << iteration_counter << " times and swapped " << swap_counter << " times.\n";
+        return best_state;
+    }
+    STATE anneal(double time_limit, double temp_start, double temp_end, STATE initial_state) {
+        start_time = toki.gettime();
+        average_time = 0;
+        STATE best_state = initial_state;
+        double elapsed_time = 0;
+        cerr << "[INFO] - IterationControl::anneal - Starts annealing...\n";
+        while(elapsed_time + average_time < time_limit) {
+            double normalized_time = elapsed_time / time_limit;
+            double temp_current = pow(temp_start, 1.0 - normalized_time) * pow(temp_end, normalized_time);
+            STATE current_state = STATE::generateState(best_state);
+            long long delta = current_state.score - best_state.score;
+            if(delta > 0 || ryuka.pjudge(exp(1.0 * delta / temp_current)) ) {
+                swap(best_state, current_state);
+                swap_counter++;
+            }
+            iteration_counter++;
+            elapsed_time = toki.gettime() - start_time;
+            average_time = elapsed_time / iteration_counter;
+        }
+        cerr << "[INFO] - IterationControl::anneal - Iterated " << iteration_counter << " times and swapped " << swap_counter << " times.\n";
         return best_state;
     }
 };
@@ -115,10 +144,8 @@ struct State {
         return res;
     }
     static State generateState(const State& input_state) {
-        static int call_count = 0;
-        call_count++;
         State res = input_state;
-        if(call_count % 2) {
+        if(ryuka.pjudge(0.5)) {
             int i = ryuka.rand(input.D);
             res.output.t[i] = ryuka.rand(n_kinds);
         } else {
@@ -135,7 +162,8 @@ int main() {
     toki.init();
     input.read();   
     IterationControl<State> sera;
-    State best = sera.climb(1.8, State::initState());
-    best.output.print();
-    cerr << "[INFO] - main - MyScore = " << best.score << "\n";
+    //State ans = sera.climb(1.8, State::initState());
+    State ans = sera.anneal(1.8, 2e3, 6e2, State::initState());
+    ans.output.print();
+    cerr << "[INFO] - main - MyScore = " << ans.score << "\n";
 }
