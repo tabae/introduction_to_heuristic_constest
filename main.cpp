@@ -5,6 +5,7 @@
 using namespace std;
 
 #define n_kinds 26
+#define OPTUNA
 
 struct RandGenerator {
     random_device seed_gen;
@@ -158,12 +159,22 @@ struct State {
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
     toki.init();
     input.read();   
+    double temp_start = 95341.24848473762;
+    double temp_end = 3.281132005830301;
+    #ifdef OPTUNA
+    if(argc == 3) {
+        temp_start = atof(argv[1]);
+        temp_end = atof(argv[2]);
+        cerr << "[INFO] - main - temp_start is " << temp_start << "\n";
+        cerr << "[INFO] - main - temp_end is " << temp_end << "\n";
+    }
+    #endif
     IterationControl<State> sera;
-    //State ans = sera.climb(1.8, State::initState());
-    State ans = sera.anneal(1.8, 2e3, 6e2, State::initState());
+    // State ans = sera.climb(1.8, State::initState());
+    State ans = sera.anneal(1.8, temp_start, temp_end, State::initState());
     ans.output.print();
     cerr << "[INFO] - main - MyScore = " << ans.score << "\n";
 }
