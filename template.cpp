@@ -4,7 +4,10 @@
 
 using namespace std;
 
-#define n_kinds 26
+#pragma region prototype_declaration
+/* ============================================== 
+    プロトタイプ宣言はここから
+   ============================================== */
 
 /*乱数生成器*/
 struct RandGenerator {
@@ -50,27 +53,22 @@ struct Timer {
 
 struct Input {
     /*TODO: ここに入力変数を定義する*/
-    void read() {
-        /*TODO: ここで入力を受け取る*/
-    }
+    void read();
 } input;
 
 struct Output {
     /*TODO: ここに出力変数を定義する*/
-    Output() {
-        /*TODO：ここで出力変数を初期化する。vectorのメモリ確保など*/
-    }
-    void print() {
-        /*TODO：ここで答えを出力する*/
-    }
+    Output();
+    void print();
 };
 
-namespace Utils {
-    long long calcScore(const Output& output) {
-        long long res = 0;
-        /*TODO: ここでスコアを計算する*/
-        return res;
-    }
+/*解を管理するクラス*/
+struct State {
+    Output output;
+    long long score;
+    State() : score(0) {}
+    static State initState();
+    static State generateState(const State& input_state);
 };
 
 /*イテレーション管理クラス*/
@@ -126,33 +124,56 @@ struct IterationControl {
     }
 };
 
-/*解を管理するクラス*/
-struct State {
-    Output output;
-    long long score;
-    State() : score(-(1LL<<60)) {}
-    static State initState() {
-        State res;
-        /*TODO: ここで初期解を作成する*/
-        res.score = Utils::calcScore(res.output);
-        return res;
-    }
-    static State generateState(const State& input_state) {
-        State res = input_state;
-        /*TODO: ここでinput_stateを変化させた解を作る（局所探索）*/
-        res.score = Utils::calcScore(res.output);
-        return res;
-    }
+namespace Utils {
+    long long calcScore(const Output& output);
 };
 
-int main() {
+/* ============================================== 
+    プロトタイプ宣言はここまで
+   ============================================== */
+
+#pragma endregion prototype_declaration
+
+/*TODO: ここで入力を受け取る*/
+void Input::read() {
+}
+
+/*TODO：ここで出力変数を初期化する。vectorのメモリ確保など*/
+Output::Output() {
+}
+
+/*TODO：ここで答えを出力する*/
+void Output::print() {
+}
+
+/*TODO: ここで初期解を作成する*/
+State State::initState() {
+    State res;
+    res.score = Utils::calcScore(res.output);
+    return res;
+}
+
+/*TODO: ここでinput_stateを変化させた解を作る（局所探索）*/
+State State::generateState(const State& input_state) {
+    State res = input_state;
+    res.score = Utils::calcScore(res.output);
+    return res;
+}
+
+/*TODO: ここでスコアを計算する*/
+long long Utils::calcScore(const Output& output) {
+    long long res = 0;
+    return res;
+}
+
+int main(int argc, char* argv[]) {
     toki.init();
     input.read();   
     IterationControl<State> sera;
     /*山登りの場合は、山登りする時間を第一引数で渡す*/
     State ans = sera.climb(1.8, State::initState());
     /*焼きなましの場合は、焼きなます時間を第一引数で、初期温度を第二引数で、終了温度を第三引数で渡す*/
-    State ans = sera.anneal(1.8, 2e3, 6e2, State::initState());
+    // State ans = sera.anneal(1.8, temp_start, temp_end, State::initState());
     ans.output.print();
     cerr << "[INFO] - main - MyScore = " << ans.score << "\n";
 }
